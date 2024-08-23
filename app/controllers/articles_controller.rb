@@ -5,7 +5,7 @@ class ArticlesController < ApplicationController
   before_action :authenticate_user!
   # GET /articles or /articles.json
   def index
-    @articles = policy_scope(Article)
+    @articles = scope
   end
 
   # GET /articles/1 or /articles/1.json
@@ -14,7 +14,7 @@ class ArticlesController < ApplicationController
 
   # GET /articles/new
   def new
-    @article = Article.new
+    @article = scope.new
   end
 
   # GET /articles/1/edit
@@ -24,7 +24,7 @@ class ArticlesController < ApplicationController
   # POST /articles or /articles.json
   def create
 
-    @article = Article.new(article_params)
+    @article = scope.new(article_params)
     @article.user = current_user
     respond_to do |format|
       if @article.save
@@ -62,13 +62,19 @@ class ArticlesController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_article
-      @article = Article.find(params[:id])
-    end
+  def pundit_user
+    current_user
+  end
 
-    # Only allow a list of trusted parameters through.
-    def article_params
-      params.require(:article).permit(:title, :content)
-    end
+  def scope
+    @scope ||= policy_scope(Article)
+  end
+
+  def set_article
+    @article = scope.find(params[:id])
+  end
+
+  def article_params
+    params.require(:article).permit(:title, :content)
+  end
 end
